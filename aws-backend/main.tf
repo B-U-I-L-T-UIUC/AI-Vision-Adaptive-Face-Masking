@@ -1,14 +1,12 @@
-module "iam" {
-  source = "./resources"
-}
-
 module "lambda" {
-  source   = "./resources"
-  # role_arn = module.iam.lambda_role_arn
+  source = "./modules/lambda"
+
+  lambda_role_arn = aws_iam_role.lambda_role.arn
 }
 
-module "api_gateway" {
-  source        = "./resources"
-  # lambda_arn    = module.lambda.lambda_arn
-  # lambda_invoke = module.lambda.lambda_invoke_arn
+module "api_gw" {
+  source = "./modules/api_gateway"
+
+  api_lambda_invoke_arn = module.lambda.api_lambda_invoke_arn
+  api_lambda_name = module.lambda.api_lambda_name
 }
