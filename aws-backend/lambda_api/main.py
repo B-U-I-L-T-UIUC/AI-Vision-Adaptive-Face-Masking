@@ -16,7 +16,7 @@ def lambda_handler(event, context):
         # Construct the message payload
         message_payload = {
             "requestId": context.aws_request_id,
-            "message": event["pathParameters"]["color"],
+            "color": event["pathParameters"]["color"],
             "event": event["body"]
         }
 
