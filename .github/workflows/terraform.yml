@@ -1,0 +1,42 @@
+name: OpenTofu Apply
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "aws-backend/**"
+      - "react-frontend/**"
+
+jobs:
+  opentofu:
+    name: OpenTofu Apply
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.0
+
+      - name: Change to AWS Backend Directory
+        run: cd aws-backend
+
+      - name: Initialize OpenTofu
+        run: cd aws-backend && tofu init
+
+      - name: Validate OpenTofu Configuration
+        run: cd aws-backend && tofu validate
+
+      - name: Generate Execution Plan
+        run: cd aws-backend && tofu plan -out=tfplan
+
+      - name: Apply OpenTofu Changes
+        if: github.ref == 'refs/heads/main'
+        run: cd aws-backend && tofu apply -auto-approve tfplan
+        env:
+          TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
