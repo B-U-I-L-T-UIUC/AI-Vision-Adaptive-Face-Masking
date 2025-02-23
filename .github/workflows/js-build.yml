@@ -16,9 +16,18 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./react-frontend
 
       - name: Run ESLint
-        run: npx eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0 || true
+        run: npx eslint . --max-warnings=0
+        working-directory: ./react-frontend
 
       - name: Build Project
         run: npm run build
+        working-directory: ./react-frontend
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: js-build
+          path: ./react-frontend/build/
