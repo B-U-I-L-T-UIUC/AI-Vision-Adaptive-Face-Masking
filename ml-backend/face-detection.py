@@ -5,7 +5,7 @@ import cv2
 import time
 import numpy as np
 
-model_path = "models/face_landmarker.task"
+model_path = "ml-backend/models/face_landmarker.task"
 
 BaseOptions = mp.tasks.BaseOptions
 FaceLandmarker = mp.tasks.vision.FaceLandmarker
