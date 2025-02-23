@@ -23,7 +23,7 @@ jobs:
 
       - name: Run Python Tests
         run: |
-          pytest --maxfail=1 --disable-warnings --exitfirst
+          pytest -v --maxfail=1 --disable-warnings --exitfirst
 
       - name: Upload Test Results
         if: always()
