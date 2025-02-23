@@ -8,7 +8,7 @@ from mediapipe.tasks.python import vision
 from awscrt import mqtt
 from awsiot import mqtt_connection_builder
 
-model_path = "models/face_landmarker.task"
+model_path = "ml-backend/models/face_landmarker.task"
 
 BaseOptions = mp.tasks.BaseOptions
 FaceLandmarker = mp.tasks.vision.FaceLandmarker
