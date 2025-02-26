@@ -8,14 +8,6 @@ from mediapipe.tasks.python import vision
 from awscrt import mqtt
 from awsiot import mqtt_connection_builder
 
-model_path = "ml-backend/models/face_landmarker.task"
-
-BaseOptions = mp.tasks.BaseOptions
-FaceLandmarker = mp.tasks.vision.FaceLandmarker
-FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
-FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
-VisionRunningMode = mp.tasks.vision.RunningMode
-
 # Create a face landmarker instance with the live stream mode:
 landmark_results = None
 
@@ -67,51 +59,75 @@ if MQTT_TOPIC_ENABLED:
     mqtt_connection.subscribe(topic=TOPIC, qos=mqtt.QoS.AT_LEAST_ONCE, callback=on_message_received)
     print(f"Subscribed to {TOPIC}")
 
+model_path = "ml-backend/models/face_landmarker.task"
+
+BaseOptions = mp.tasks.BaseOptions
+FaceLandmarker = mp.tasks.vision.FaceLandmarker
+FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
+FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
+VisionRunningMode = mp.tasks.vision.RunningMode
+
+
 def print_result(result: FaceLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     global landmark_results
     landmark_results = result
 
-options = FaceLandmarkerOptions(
-    base_options=BaseOptions(model_asset_path=model_path),
-    running_mode=VisionRunningMode.LIVE_STREAM,
-    result_callback=print_result)
+def initialize_face_landmarker(model_path: str):
+    options = FaceLandmarkerOptions(
+        base_options=BaseOptions(model_asset_path=model_path),
+        running_mode=VisionRunningMode.LIVE_STREAM,
+        result_callback=print_result)
+    return options
 
-cap = cv2.VideoCapture(0)
+def intialize_camera():
+    cap = cv2.VideoCapture(0)
 
-if not cap.isOpened():
-    print("Cannot open camera")
-    exit()
+    if not cap.isOpened():
+        raise Exception("Error: Could not open camera.")
+    return cap
 
 # Start face landmark detection
-with FaceLandmarker.create_from_options(options) as landmarker:
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            print("Ignoring empty camera frame.")
-            continue
+def run_face_landmark_detection(cap, options, color=(0, 255, 0)):
+    with FaceLandmarker.create_from_options(options) as landmarker:
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                print("Ignoring empty camera frame.")
+                continue
 
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
-        frame_timestamp_ms = int(time.time() * 1000)
-        landmarker.detect_async(mp_image, frame_timestamp_ms)
-        time.sleep(0.01)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+            frame_timestamp_ms = int(time.time() * 1000)
+            landmarker.detect_async(mp_image, frame_timestamp_ms)
+            time.sleep(0.01)
 
-        # Draw landmarks if detected
-        if landmark_results and landmark_results.face_landmarks:
-            for face_landmarks in landmark_results.face_landmarks:
-                for landmark in face_landmarks:
-                    x, y = int(landmark.x * frame.shape[1]), int(landmark.y * frame.shape[0])
-                    cv2.circle(frame, (x, y), 1, color, -1)  # Draw dots for landmarks
+            # Draw landmarks if detected
+            if landmark_results and landmark_results.face_landmarks:
+                for face_landmarks in landmark_results.face_landmarks:
+                    for landmark in face_landmarks:
+                        x, y = int(landmark.x * frame.shape[1]), int(landmark.y * frame.shape[0])
+                        cv2.circle(frame, (x, y), 1, color, -1)  # Draw dots for landmarks
 
-        cv2.imshow('MediaPipe Face Detection', frame)
+            cv2.imshow('MediaPipe Face Detection', frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
 
 if MQTT_TOPIC_ENABLED and mqtt_connection:
     print("Disconnecting...")
     mqtt_connection.disconnect().result()
     print("Disconnected from AWS IoT.")
+
+
+# Main function
+def main():
+    cap = intialize_camera()
+    options = initialize_face_landmarker(model_path)
+    run_face_landmark_detection(cap, options, color=color)
+
+# Run main function
+if __name__ == "__main__":
+    main()
