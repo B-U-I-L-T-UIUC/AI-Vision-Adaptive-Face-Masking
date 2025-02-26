@@ -1,0 +1,42 @@
+name: React App Build & Deploy
+
+on:
+  workflow_dispatch:  
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "react-frontend/**"
+
+jobs:
+  react-build:
+    name: React App Build & Deploy
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: "us-east-1"
+      S3_BUCKET_NAME: "eoh-web-app-bucket"  
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18  
+
+      - name: Install Dependencies
+        working-directory: react-frontend
+        run: npm install
+
+      - name: Build React App
+        working-directory: react-frontend
+        run: npm run build
+
+      - name: Upload Build to AWS S3 (Only on main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: aws s3 sync react-frontend/build/ s3://$S3_BUCKET_NAME/ --delete
+        
