@@ -45,6 +45,7 @@ jobs:
 
       # ---- Upload React Build to S3 ----
       - name: Upload Build to S3
+        if: github.ref == 'refs/heads/main'
         run: aws s3 sync react-frontend/build/ s3://$S3_BUCKET_NAME/ --delete
 
       # ---- OpenTofu Deployment ----
