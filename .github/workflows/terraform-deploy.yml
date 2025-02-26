@@ -19,6 +19,9 @@ jobs:
       AWS_DEFAULT_REGION: "us-east-1"
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
       - name: Setup OpenTofu (Terraform)
         uses: opentofu/setup-opentofu@v1
         with:
