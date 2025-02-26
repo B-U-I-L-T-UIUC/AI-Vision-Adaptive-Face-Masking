@@ -3,8 +3,6 @@ import cv2
 import time
 import numpy as np
 import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
 from awscrt import mqtt
 from awsiot import mqtt_connection_builder
 
@@ -79,7 +77,7 @@ def initialize_face_landmarker(model_path: str):
         result_callback=print_result)
     return options
 
-def intialize_camera():
+def initialize_camera():
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
@@ -124,7 +122,7 @@ if MQTT_TOPIC_ENABLED and mqtt_connection:
 
 # Main function
 def main():
-    cap = intialize_camera()
+    cap = initialize_camera()
     options = initialize_face_landmarker(model_path)
     run_face_landmark_detection(cap, options, color=color)
 
