@@ -7,8 +7,8 @@ on:
     branches:
       - main
     paths:
-      - "aws-backend/**"
-      - "react-frontend/**"
+      - "aws_backend/**"
+      - "react_frontend/**"
 
 jobs:
   opentofu:
