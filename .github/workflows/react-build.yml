@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "react-frontend/**"
+      - "react_frontend/**"
 
 jobs:
   react-build:
@@ -29,11 +29,11 @@ jobs:
           node-version: 18  
 
       - name: Install Dependencies
-        working-directory: react-frontend
+        working-directory: react_frontend
         run: npm install
 
       - name: Build React App
-        working-directory: react-frontend
+        working-directory: react_frontend
         run: npm run build
 
       - name: Upload Build to AWS S3 (Only on main)
