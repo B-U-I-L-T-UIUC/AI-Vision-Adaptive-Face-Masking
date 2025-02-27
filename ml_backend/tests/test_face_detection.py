@@ -35,26 +35,24 @@ def test_run_face_landmark_detection(mock_destroy, mock_waitKey, mock_imshow, mo
     mock_landmarker_instance.detect_async.return_value = None
     mock_create_from_options.return_value.__enter__.return_value = mock_landmarker_instance
     
-    # Mock cv2.cvtColor to avoid errors
-    with patch('cv2.cvtColor', return_value=MagicMock()):
-        # Mock mediapipe Image
-        with patch('mediapipe.Image', return_value=MagicMock()):
-            # Mock time functions to avoid delays
-            with patch('time.time', return_value=12345), patch('time.sleep'):
-                # Make 'landmark_results' available in the global scope for the function
-                with patch('ml_backend.face_detection.landmark_results', MagicMock(face_landmarks=[])):
-                    # Define these functions if they're called in the test but not in the test file
-                    def initialize_camera_test():
-                        return mock_cap
-                        
-                    def initialize_face_landmarker_test(model_path):
-                        return MagicMock()
-                    
-                    model_path = "ml-backend/models/face_landmarker.task"
-                    cap = initialize_camera_test()
-                    options = initialize_face_landmarker_test(model_path)
+    with (patch('cv2.cvtColor', return_value=MagicMock()), 
+        patch('mediapipe.Image', return_value=MagicMock()), 
+        patch('time.time', return_value=12345), patch('time.sleep'), 
+        patch('ml_backend.face_detection.landmark_results', 
+        MagicMock(face_landmarks=[]))
+    ):
+        # Define these functions if they're called in the test but not in the test file
+        def initialize_camera_test():
+            return mock_cap
+            
+        def initialize_face_landmarker_test(model_path):
+            return MagicMock()
+        
+        model_path = "ml-backend/models/face_landmarker.task"
+        cap = initialize_camera_test()
+        options = initialize_face_landmarker_test(model_path)
 
-                    run_face_landmark_detection(cap, options)
+        run_face_landmark_detection(cap, options)
 
     assert mock_landmarker_instance.detect_async.called, "Face detection should be called"
     assert mock_cap.read.called, "Camera read should be called"
