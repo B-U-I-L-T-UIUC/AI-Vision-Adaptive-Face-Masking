@@ -1,3 +1,3 @@
 variable "cloudfront_arn" {
-    type = string
+  type = string
 }
