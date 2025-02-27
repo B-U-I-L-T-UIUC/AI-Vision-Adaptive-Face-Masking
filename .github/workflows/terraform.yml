@@ -30,17 +30,17 @@ jobs:
           tofu_version: 1.6.0
 
       - name: Change to AWS Backend Directory
-        run: cd aws-backend
+        run: cd aws_backend
 
       - name: Initialize OpenTofu
-        run: cd aws-backend && tofu init
+        run: cd aws_backend && tofu init
 
       - name: Validate OpenTofu Configuration
-        run: cd aws-backend && tofu validate
+        run: cd aws_backend && tofu validate
 
       - name: Generate Execution Plan
-        run: cd aws-backend && tofu plan -out=tfplan
+        run: cd aws_backend && tofu plan -out=tfplan
 
       - name: Apply OpenTofu Changes
         if: github.ref == 'refs/heads/main'
-        run: cd aws-backend && tofu apply -auto-approve tfplan
+        run: cd aws_backend && tofu apply -auto-approve tfplan

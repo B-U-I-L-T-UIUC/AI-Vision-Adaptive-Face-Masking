@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "aws-backend/**"
+      - "aws_backend/**"
 
 jobs:
   opentofu:
@@ -28,7 +28,7 @@ jobs:
           tofu_version: 1.6.0
 
       - name: Initialize OpenTofu
-        working-directory: aws-backend
+        working-directory: aws_backend
         run: tofu init
 
       - name: Validate OpenTofu Configuration 
@@ -36,10 +36,10 @@ jobs:
         run: tofu validate
 
       - name: Generate Execution Plan
-        working-directory: aws-backend
+        working-directory: aws_backend
         run: tofu plan -out=tfplan
 
       - name: Apply OpenTofu Changes (Only on main)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        working-directory: aws-backend
+        working-directory: aws_backend
         run: tofu apply -auto-approve tfplan
