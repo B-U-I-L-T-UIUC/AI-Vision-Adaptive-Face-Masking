@@ -21,6 +21,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: "us-east-1"
       S3_BUCKET_NAME: "eoh-web-app-bucket"  
+      CLOUDFRONT_DISTRIBUTION_ID: "E2FH4EFNVR7BZO"
 
     steps:
       - name: Checkout repository
@@ -41,4 +42,8 @@ jobs:
 
       - name: Upload Build to AWS S3 (Only on main)
         if: github.ref == 'refs/heads/main'
-        run: aws s3 sync react_frontend/build/ s3://$S3_BUCKET_NAME/ --delete
+        run: aws s3 sync react_frontend/build/ s3://$S3_BUCKET_NAME/ --delete 
+
+      - name: Invalidate CloudFront Cache (Only on main)
+        if: github.ref == 'refs/heads/main'
+        run: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths /*
