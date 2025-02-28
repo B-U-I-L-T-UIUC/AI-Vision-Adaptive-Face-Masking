@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - "react_frontend/**"
+  push:
+    branches:
+      - main
 
 jobs:
   js-build:
