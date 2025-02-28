@@ -4,7 +4,7 @@
 
 ## Important Starter Info
 
-  - Our EOH Website is currently hosted on AWS at [d1sgrkfj1bwr8d.cloudfront.net](d1sgrkfj1bwr8d.cloudfront.net)
+  - Our EOH Website is currently hosted on AWS at [d1sgrkfj1bwr8d.cloudfront.net](https://d1sgrkfj1bwr8d.cloudfront.net)
   - If certificates/keys are needed to connect the ml_backend to AWS IoT, please ask @scuruchima1 for certificates and guidance.
   
 ## ML Backend
