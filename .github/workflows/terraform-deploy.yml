@@ -1,0 +1,45 @@
+name: Terraform Validate & Apply
+
+on:
+  workflow_dispatch:  
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "aws_backend/**"
+
+jobs:
+  opentofu:
+    name: Terraform Validate & Apply
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: "us-east-1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup OpenTofu (Terraform)
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.0
+
+      - name: Initialize OpenTofu
+        working-directory: aws_backend
+        run: tofu init
+
+      - name: Validate OpenTofu Configuration 
+        working-directory: aws_backend
+        run: tofu validate
+
+      - name: Generate Execution Plan
+        working-directory: aws_backend
+        run: tofu plan -out=tfplan
+
+      - name: Apply OpenTofu Changes (Only on main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: aws_backend
+        run: tofu apply -auto-approve tfplan

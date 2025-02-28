@@ -1,0 +1,33 @@
+name: JavaScript Build & Lint
+
+on: [push, pull_request]
+
+jobs:
+  js-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./react_frontend
+
+      - name: Run ESLint
+        run: npx eslint . --max-warnings=0
+        working-directory: ./react_frontend
+
+      - name: Build Project
+        run: npm run build
+        working-directory: ./react_frontend
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: js-build
+          path: ./react_frontend/build/
