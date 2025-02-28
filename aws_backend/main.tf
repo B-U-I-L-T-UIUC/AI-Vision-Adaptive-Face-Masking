@@ -11,8 +11,12 @@ module "api_gw" {
   api_lambda_name       = module.lambda.api_lambda_name
 }
 
+module "data_s3" {
+  source = "./modules/data_s3"
+}
+
 module "web_app_s3" {
-  source = "./modules/s3"
+  source = "./modules/web_app_s3"
 
   cloudfront_arn = module.web_app_cloudfront.cloudfront_arn
 }
@@ -20,6 +24,6 @@ module "web_app_s3" {
 module "web_app_cloudfront" {
   source = "./modules/cloudfront"
 
-  # web_bucket_origin_id = module.web_app_s3.web_bucket_origin_id
   web_bucket_region_domain_name = module.web_app_s3.web_bucket_region_domain_name
+  web_bucket_name = module.web_app_s3.web_bucket_name
 }
