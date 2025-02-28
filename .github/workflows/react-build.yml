@@ -7,6 +7,9 @@ on:
       - main
     paths:
       - "react_frontend/**"
+  push:
+    branches:
+      - main
 
 jobs:
   react-build:
@@ -37,6 +40,5 @@ jobs:
         run: npm run build
 
       - name: Upload Build to AWS S3 (Only on main)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: aws s3 sync react-frontend/build/ s3://$S3_BUCKET_NAME/ --delete
-        
+        if: github.ref == 'refs/heads/main'
+        run: aws s3 sync react_frontend/build/ s3://$S3_BUCKET_NAME/ --delete

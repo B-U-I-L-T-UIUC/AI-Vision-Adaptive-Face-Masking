@@ -7,6 +7,9 @@ on:
       - main
     paths:
       - "aws_backend/**"
+  push:
+    branches:
+      - main
 
 jobs:
   opentofu:
@@ -40,6 +43,6 @@ jobs:
         run: tofu plan -out=tfplan
 
       - name: Apply OpenTofu Changes (Only on main)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         working-directory: aws_backend
         run: tofu apply -auto-approve tfplan
