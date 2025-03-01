@@ -1,0 +1,53 @@
+.buttons {
+  display: inline-block;
+}
+
+.button {
+  display: inline-block;
+  padding-top: 10px;
+  padding-right: 4px;
+  padding-left: 4px;
+  background-color: #9559E5;
+  text-align: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.button:hover {
+  background-color: #7444b3;
+}
+
+img {
+  /*all button images*/
+  width: 50px;
+  height: 50px;
+}
+
+
+
+.right {
+  background-color: transparent;
+  border-color: transparent;
+  padding: 20px;
+}
+
+.right:hover img {
+  filter: brightness(0.5);
+}
+
+
+.left {
+  background-color: transparent;
+  border-color: transparent;
+  padding: 20px;
+}
+
+.left img {
+  transform: scaleX(-1);
+}
+
+.left:hover img {
+  filter: brightness(0.5);
+}
