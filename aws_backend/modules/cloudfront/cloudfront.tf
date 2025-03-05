@@ -13,6 +13,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   is_ipv6_enabled     = true
   comment             = "B[U]ILT EOH Project Website"
   default_root_object = "index.html"
+  price_class         = "PriceClass_100"
 
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
@@ -32,7 +33,13 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     max_ttl                = 86400
   }
 
-  price_class = "PriceClass_100"
+  # needed due to the way react web apps route
+  custom_error_response {
+    error_code            = 403
+    error_caching_min_ttl = 10
+    response_code         = 200
+    response_page_path    = "/index.html"
+  }
 
   restrictions {
     geo_restriction {
