@@ -1,5 +1,5 @@
 output "web_bucket_name" {
-    value = aws_s3_bucket.web_bucket.id
+  value = aws_s3_bucket.web_bucket.id
 }
 
 output "web_bucket_region_domain_name" {
