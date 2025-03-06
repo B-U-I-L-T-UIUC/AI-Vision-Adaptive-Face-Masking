@@ -10,4 +10,4 @@ export default function LiveFeedNavigation() {
         </div>
         </>
     );
-  }
+}
