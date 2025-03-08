@@ -2,11 +2,9 @@
   display: inline-block;
 }
 
-.button {
+.gallery_button {
   display: inline-block;
-  padding-top: 10px;
-  padding-right: 4px;
-  padding-left: 4px;
+  padding: 12px;
   background-color: #9559E5;
   text-align: center;
   width: 60px;
@@ -15,7 +13,7 @@
   text-decoration: none;
 }
 
-.button:hover {
+.gallery_button:hover {
   background-color: #7444b3;
 }
 
@@ -27,27 +25,24 @@ img {
 
 
 
-.right {
+.right_img {
   background-color: transparent;
   border-color: transparent;
-  padding: 20px;
+  padding-left: 40px;
+  padding-bottom: 20px;
 }
 
-.right:hover img {
+.right_img:hover {
   filter: brightness(0.5);
 }
 
 
-.left {
-  background-color: transparent;
-  border-color: transparent;
-  padding: 20px;
-}
-
-.left img {
+.left_img {
   transform: scaleX(-1);
+  padding-left: 40px;
+  padding-bottom: 20px;
 }
 
-.left:hover img {
+.left_img:hover {
   filter: brightness(0.5);
 }

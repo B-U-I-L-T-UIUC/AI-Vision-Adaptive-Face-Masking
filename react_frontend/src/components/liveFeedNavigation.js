@@ -1,12 +1,14 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/liveFeedNavigation.css"
-
 export default function LiveFeedNavigation() {
+    const navigate = useNavigate();
     return (
         <>
-        <div class="buttons">
-            <button type="button" class="left"><img src="/assets/arrow.png" alt="right-arrow"/></button>
-            <a href="/avatar-gallery" className="button"><img src="/assets/galleryicon.png" alt="gallery"/></a>
-            <button type="button" class="right"><img src="/assets/arrow.png" alt="right-arrow" class="arrow"/></button>
+        <div className="buttons">
+            <img src="/assets/arrow.png" alt="right-arrow" className="left_img"/>
+            <img src="/assets/galleryicon.png" alt="gallery" className="gallery_button" onClick={() => navigate("../avatar-gallery")}/>
+            <img src="/assets/arrow.png" alt="right-arrow" className="right_img"/>
         </div>
         </>
     );
