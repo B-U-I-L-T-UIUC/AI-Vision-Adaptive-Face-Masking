@@ -1,8 +1,10 @@
-import LiveFeedNavigation from "../components/liveFeedNavigation";
+import VideoContainer from "../components/videoContainer";
+
 export default function LiveFeedPage() {
     return (
-        <>
-        <LiveFeedNavigation/>
-        </>
+        <div className="video-wrapper">
+        <h2 className="title">AVAFM</h2>
+        <VideoContainer />
+        </div>       
     );
   }

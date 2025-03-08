@@ -1,0 +1,18 @@
+.video-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+.title {
+    position: absolute;
+    top: 0%;
+    left: 5%;
+    font-size: 1.5rem;
+    color: white;
+    z-index: 10;
+}
