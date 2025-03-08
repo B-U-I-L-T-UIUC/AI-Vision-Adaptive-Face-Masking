@@ -7,11 +7,14 @@ export default function VideoContainer() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    let stream;
     async function startCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const videoElement = videoRef.current;
+        
+        if (videoElement) {
+          videoElement.srcObject = stream;
         }
       } catch (err) {
         console.error("Error accessing the camera:", err);
@@ -22,8 +25,8 @@ export default function VideoContainer() {
     startCamera();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
     };
   }, []);
@@ -31,12 +34,13 @@ export default function VideoContainer() {
   return (
     <div className="parent">
       <div className="video-container">
-        {/* only showing device camera feed for now */}
+        {/* rn its just regular video feed */}
         {errorMessage ? (
           <div className="video-placeholder">{errorMessage}</div>
         ) : (
           <video ref={videoRef} autoPlay playsInline className="camera-feed"></video>
         )}
+
         <div className="live-feed-nav-wrapper">
           <LiveFeedNavigation />
         </div>
