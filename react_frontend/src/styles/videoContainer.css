@@ -1,0 +1,70 @@
+.video-container {
+    width: 90vw;
+    max-width: 100%;
+    height: 85vh;
+    background-color: #554d4a; /* Visible when camera is off */
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    position: relative; /* Needed for absolute positioning of child elements */
+    overflow: hidden;
+}
+
+.camera-feed {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 5px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.video-placeholder {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    border-radius: 5px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.live-feed-nav-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+    position: absolute;
+    bottom: 10px; /* Ensures it stays inside */
+    z-index: 10; /* Ensures it’s on top of the video */
+}
+
+.toggle-button {
+    position: absolute;
+    bottom: 60px; /* Above the navigation */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #9559E5;
+    color: white;
+    z-index: 11; /* Ensures it's clickable above video */
+}
+
+.toggle-button:hover {
+    background-color: #7444b3;
+}
