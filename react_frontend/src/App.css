@@ -21,9 +21,13 @@
   color: white;
 }
 body {
-  background-color: #3C4AC7;
-  color:white
+  background: linear-gradient(90deg, #be0cce,  #3C4AC7);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh; /* Ensure the gradient covers the entire height of the page */
+  font-family: 'Inter', sans-serif; /* If you want to set the font globally */
 }
+
 .App-link {
   color: #61DAFB;
 }

@@ -20,10 +20,14 @@ export default function LandingPage() {
           <button onClick={handleStartClick}>Click to Start</button>
         </section>
 
-        <footer>
-          <p>Credit to B[U]ILT's Tech Committee</p>
-        </footer>
-      </div>
+        {/* Footer with the credit */}
+      <footer>
+        <p>
+          Credit to <a href="https://built-illinois.org/#/Home" target="_blank" rel="noopener noreferrer">B[U]ILT's Tech Committee</a>
+        </p>
+      </footer>
+
+    </div>
     </>
   );
 }
