@@ -1,0 +1,22 @@
+.add-avatar-btn {
+    width: 150px;
+    height: 150px;
+    background-color: #a0a0a0;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #000;
+    cursor: pointer;
+
+}
+
+.add-avatar-btn:hover {
+    background-color: #8a8a8a;
+}
+
+.add-avatar-icon {
+    font-size: 32px;
+    color: #000;
+}
+  
