@@ -57,7 +57,7 @@ if MQTT_TOPIC_ENABLED:
     mqtt_connection.subscribe(topic=TOPIC, qos=mqtt.QoS.AT_LEAST_ONCE, callback=on_message_received)
     print(f"Subscribed to {TOPIC}")
 
-model_path = "ml_backend/models/face_landmarker.task"
+model_path = "models/face_landmarker.task"
 
 BaseOptions = mp.tasks.BaseOptions
 FaceLandmarker = mp.tasks.vision.FaceLandmarker
