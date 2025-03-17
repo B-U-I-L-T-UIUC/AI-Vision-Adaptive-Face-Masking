@@ -7,4 +7,4 @@ export default function LiveFeedPage() {
         <VideoContainer />
         </div>       
     );
-  }
+}
