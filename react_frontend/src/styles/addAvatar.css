@@ -6,9 +6,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #000;
+    border: 1px solid #ffffff;
     cursor: pointer;
-
 }
 
 .add-avatar-btn:hover {
