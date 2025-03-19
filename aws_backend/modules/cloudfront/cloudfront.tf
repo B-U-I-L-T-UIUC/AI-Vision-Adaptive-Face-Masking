@@ -15,6 +15,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
 
+  aliases = ["eoh.built-illinois.org"]
+
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
@@ -50,6 +52,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
   viewer_certificate {
     cloudfront_default_certificate = true
+    ssl_support_method = "sni-only"
+    acm_certificate_arn = "arn:aws:acm:us-east-1:242201276922:certificate/7c268576-5015-4f4a-b7a2-7d5ae74ad8e0"
   }
 }
 
