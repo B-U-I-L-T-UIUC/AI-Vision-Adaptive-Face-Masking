@@ -60,3 +60,4 @@ wcwidth==0.2.13
 zipp==3.21.0
 awscrt
 awsiotsdk
+

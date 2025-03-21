@@ -3,8 +3,11 @@ import cv2
 import time
 import numpy as np
 import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
 from awscrt import mqtt
 from awsiot import mqtt_connection_builder
+
 
 # Create a face landmarker instance with the live stream mode:
 landmark_results = None
@@ -66,15 +69,43 @@ FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
 
+blendshape_results = []  # Stores all frames' blendshapes
+transformation_matrices = []  # Stores transformation matrices
+
 def print_result(result: FaceLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
-    global landmark_results
+    global landmark_results, blendshape_results, transformation_matrices
     landmark_results = result
+
+    if result.face_blendshapes:
+        frame_blendshapes = []  # Stores blendshapes for the current frame
+        
+        for face_blendshapes in result.face_blendshapes:
+            face_data = {blendshape.category_name: blendshape.score for blendshape in face_blendshapes}
+            frame_blendshapes.append(face_data)
+
+        blendshape_results.append(frame_blendshapes)  # Save this frame's blendshapes
+
+        # 🔹 Print blendshapes for debugging (Top 5 for each face)
+        print(f"\nFrame {len(blendshape_results)} Blendshapes:")
+        for i, face_data in enumerate(frame_blendshapes):
+            sorted_blendshapes = sorted(face_data.items(), key=lambda x: x[1], reverse=True)[:5]  # Top 5
+            print(f"Face {i}: " + ", ".join(f"{k}: {v:.2f}" for k, v in sorted_blendshapes))
+
+    if result.facial_transformation_matrixes:
+        transformation_matrices.append(result.facial_transformation_matrixes)
+        print("\nFacial Transformation Matrices:")
+        for i, matrix in enumerate(result.facial_transformation_matrixes):
+            print(f"Face {i} Matrix:\n{np.array(matrix)}\n")  # Pretty-print matrix
+    
 
 def initialize_face_landmarker(model_path: str):
     options = FaceLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=model_path),
         running_mode=VisionRunningMode.LIVE_STREAM,
-        result_callback=print_result)
+        result_callback=print_result,
+        output_face_blendshapes=True,
+        output_facial_transformation_matrixes=True 
+    )
     return options
 
 def initialize_camera():
@@ -106,6 +137,15 @@ def run_face_landmark_detection(cap, options, color=(0, 255, 0)):
                         x, y = int(landmark.x * frame.shape[1]), int(landmark.y * frame.shape[0])
                         cv2.circle(frame, (x, y), 1, color, -1)  # Draw dots for landmarks
 
+            # Display facial blendshapes in OpenCV overlay
+            if landmark_results and landmark_results.face_blendshapes:
+                for i, face_blendshapes in enumerate(landmark_results.face_blendshapes):
+                    y_offset = 20
+                    for blendshape in face_blendshapes[:5]:  # Show top 5 blendshapes
+                        text = f"{blendshape.category_name}: {blendshape.score:.2f}"
+                        cv2.putText(frame, text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                        y_offset += 20
+
             cv2.imshow('MediaPipe Face Detection', frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -113,6 +153,7 @@ def run_face_landmark_detection(cap, options, color=(0, 255, 0)):
 
     cap.release()
     cv2.destroyAllWindows()
+
 
 if MQTT_TOPIC_ENABLED and mqtt_connection:
     print("Disconnecting...")
