@@ -1,10 +1,17 @@
 import json
 import cv2
 import time
+import threading
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
 from awscrt import mqtt
 from awsiot import mqtt_connection_builder
+
 
 # Create a face landmarker instance with the live stream mode:
 landmark_results = None
@@ -57,7 +64,7 @@ if MQTT_TOPIC_ENABLED:
     mqtt_connection.subscribe(topic=TOPIC, qos=mqtt.QoS.AT_LEAST_ONCE, callback=on_message_received)
     print(f"Subscribed to {TOPIC}")
 
-model_path = "ml_backend/models/face_landmarker.task"
+model_path = "models/face_landmarker.task"
 
 BaseOptions = mp.tasks.BaseOptions
 FaceLandmarker = mp.tasks.vision.FaceLandmarker
@@ -66,15 +73,84 @@ FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
 
+blendshape_results = []  # Stores all frames' blendshapes
+transformation_matrices = []  # Stores transformation matrices
+blendShapeData = pd.DataFrame() # Stores all blendshapes in a DataFrame
+
 def print_result(result: FaceLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
-    global landmark_results
+    global landmark_results, blendshape_results, transformation_matrices, blendShapeData
     landmark_results = result
+
+
+    if result.face_blendshapes:
+        frame_blendshapes = []  # Stores blendshapes for the current frame
+        
+        for face_blendshapes in result.face_blendshapes:
+            face_data = {blendshape.category_name: blendshape.score for blendshape in face_blendshapes}
+            frame_blendshapes.append(face_data)
+
+        blendShapeData = pd.concat([blendShapeData, pd.DataFrame(frame_blendshapes)], ignore_index=True)
+
+        blendshape_results.append(frame_blendshapes)  # Save this frame's blendshapes
+
+
+# Blendshapes we want to track live
+tracked_blendshapes = ["mouthSmileLeft", "eyeBlinkRight", "browInnerUp"]
+
+blendshape_history = {name: [] for name in tracked_blendshapes}
+frame_indices = []
+
+# Set up the plot
+fig, ax = plt.subplots()
+
+def update_plot(frame):
+    global blendShapeData, blendshape_history, frame_indiqces
+    columns = blendShapeData.columns.to_list()
+    print(columns)
+
+    if blendShapeData.empty:
+        return
+
+    # Assume each row = one face in one frame
+    latest_row = blendShapeData.iloc[-1]
+
+    # Append current frame index
+    current_index = frame_indices[-1] + 1 if frame_indices else 0
+    frame_indices.append(current_index)
+
+    for name in tracked_blendshapes:
+        score = latest_row.get(name, 0.0)
+        blendshape_history[name].append(score)
+
+ 
+    #Clear and replot
+    ax.clear()
+
+    # Plot only the latest 100 points for a sliding window effect
+    window_size = 100
+    for name in tracked_blendshapes:
+        y_data = blendshape_history[name][-window_size:]
+        x_data = frame_indices[-window_size:]
+        ax.plot(x_data, y_data, label=name)
+
+    ax.set_ylim(0, 1)
+    ax.set_title("Live Blendshape Graph")
+    ax.set_xlabel("Frame")
+    ax.set_ylabel("Score")
+    ax.legend(loc='upper right')
+    plt.tight_layout()
+
+
+    
 
 def initialize_face_landmarker(model_path: str):
     options = FaceLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=model_path),
         running_mode=VisionRunningMode.LIVE_STREAM,
-        result_callback=print_result)
+        result_callback=print_result,
+        output_face_blendshapes=True,
+        output_facial_transformation_matrixes=True 
+    )
     return options
 
 def initialize_camera():
@@ -106,6 +182,15 @@ def run_face_landmark_detection(cap, options, color=(0, 255, 0)):
                         x, y = int(landmark.x * frame.shape[1]), int(landmark.y * frame.shape[0])
                         cv2.circle(frame, (x, y), 1, color, -1)  # Draw dots for landmarks
 
+            # Display facial blendshapes in OpenCV overlay
+            if landmark_results and landmark_results.face_blendshapes:
+                for i, face_blendshapes in enumerate(landmark_results.face_blendshapes):
+                    y_offset = 20
+                    for blendshape in face_blendshapes[:5]:  # Show top 5 blendshapes
+                        text = f"{blendshape.category_name}: {blendshape.score:.2f}"
+                        cv2.putText(frame, text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                        y_offset += 20
+
             cv2.imshow('MediaPipe Face Detection', frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -113,6 +198,7 @@ def run_face_landmark_detection(cap, options, color=(0, 255, 0)):
 
     cap.release()
     cv2.destroyAllWindows()
+
 
 if MQTT_TOPIC_ENABLED and mqtt_connection:
     print("Disconnecting...")
@@ -124,6 +210,11 @@ if MQTT_TOPIC_ENABLED and mqtt_connection:
 def main():
     cap = initialize_camera()
     options = initialize_face_landmarker(model_path)
+
+    ani = animation.FuncAnimation(fig, update_plot, interval=100)
+    plt.ion()  # Enable interactive mode so that plot updates without blocking
+    plt.show()
+
     run_face_landmark_detection(cap, options, color=color)
 
 # Run main function
