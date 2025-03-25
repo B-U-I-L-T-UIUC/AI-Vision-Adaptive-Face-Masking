@@ -1,7 +1,11 @@
 import json
 import cv2
 import time
+import threading
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
@@ -71,10 +75,12 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 
 blendshape_results = []  # Stores all frames' blendshapes
 transformation_matrices = []  # Stores transformation matrices
+blendShapeData = pd.DataFrame() # Stores all blendshapes in a DataFrame
 
 def print_result(result: FaceLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
-    global landmark_results, blendshape_results, transformation_matrices
+    global landmark_results, blendshape_results, transformation_matrices, blendShapeData
     landmark_results = result
+
 
     if result.face_blendshapes:
         frame_blendshapes = []  # Stores blendshapes for the current frame
@@ -83,19 +89,58 @@ def print_result(result: FaceLandmarkerResult, output_image: mp.Image, timestamp
             face_data = {blendshape.category_name: blendshape.score for blendshape in face_blendshapes}
             frame_blendshapes.append(face_data)
 
+        blendShapeData = pd.concat([blendShapeData, pd.DataFrame(frame_blendshapes)], ignore_index=True)
+
         blendshape_results.append(frame_blendshapes)  # Save this frame's blendshapes
 
-        # 🔹 Print blendshapes for debugging (Top 5 for each face)
-        print(f"\nFrame {len(blendshape_results)} Blendshapes:")
-        for i, face_data in enumerate(frame_blendshapes):
-            sorted_blendshapes = sorted(face_data.items(), key=lambda x: x[1], reverse=True)[:5]  # Top 5
-            print(f"Face {i}: " + ", ".join(f"{k}: {v:.2f}" for k, v in sorted_blendshapes))
 
-    if result.facial_transformation_matrixes:
-        transformation_matrices.append(result.facial_transformation_matrixes)
-        print("\nFacial Transformation Matrices:")
-        for i, matrix in enumerate(result.facial_transformation_matrixes):
-            print(f"Face {i} Matrix:\n{np.array(matrix)}\n")  # Pretty-print matrix
+# Blendshapes we want to track live
+tracked_blendshapes = ["mouthSmileLeft", "eyeBlinkRight", "browInnerUp"]
+
+blendshape_history = {name: [] for name in tracked_blendshapes}
+frame_indices = []
+
+# Set up the plot
+fig, ax = plt.subplots()
+
+def update_plot(frame):
+    global blendShapeData, blendshape_history, frame_indiqces
+    columns = blendShapeData.columns.to_list()
+    print(columns)
+
+    if blendShapeData.empty:
+        return
+
+    # Assume each row = one face in one frame
+    latest_row = blendShapeData.iloc[-1]
+
+    # Append current frame index
+    current_index = frame_indices[-1] + 1 if frame_indices else 0
+    frame_indices.append(current_index)
+
+    for name in tracked_blendshapes:
+        score = latest_row.get(name, 0.0)
+        blendshape_history[name].append(score)
+
+ 
+    #Clear and replot
+    ax.clear()
+
+    # Plot only the latest 100 points for a sliding window effect
+    window_size = 100
+    for name in tracked_blendshapes:
+        y_data = blendshape_history[name][-window_size:]
+        x_data = frame_indices[-window_size:]
+        ax.plot(x_data, y_data, label=name)
+
+    ax.set_ylim(0, 1)
+    ax.set_title("Live Blendshape Graph")
+    ax.set_xlabel("Frame")
+    ax.set_ylabel("Score")
+    ax.legend(loc='upper right')
+    plt.tight_layout()
+
+
     
 
 def initialize_face_landmarker(model_path: str):
@@ -165,6 +210,11 @@ if MQTT_TOPIC_ENABLED and mqtt_connection:
 def main():
     cap = initialize_camera()
     options = initialize_face_landmarker(model_path)
+
+    ani = animation.FuncAnimation(fig, update_plot, interval=100)
+    plt.ion()  # Enable interactive mode so that plot updates without blocking
+    plt.show()
+
     run_face_landmark_detection(cap, options, color=color)
 
 # Run main function
