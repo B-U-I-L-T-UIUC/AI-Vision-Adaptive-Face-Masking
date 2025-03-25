@@ -1,0 +1,33 @@
+# Ignore private keys and certificates
+*.pem
+*.crt
+*.key
+*.cer
+*.der
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.gpg
+
+# Ignore SSH related files
+id_rsa
+id_rsa.pub
+id_ecdsa
+id_ecdsa.pub
+id_ed25519
+id_ed25519.pub
+
+# Ignore OpenSSL and GPG files
+*.srl
+*.csr
+*.asc
+*.sig
+*.pgp
+*.gpg
+
+# Ignore Kubernetes and cloud credentials
+kubeconfig
+*.kubeconfig
+*.envrc
+*.secrets
