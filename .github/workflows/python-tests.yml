@@ -10,6 +10,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "ml_backend/**"
+      - "aws_backend/**"
 
 jobs:
   ml-backend-tests:
