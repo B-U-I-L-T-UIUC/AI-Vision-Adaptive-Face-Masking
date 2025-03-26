@@ -19,7 +19,7 @@ export default function AvatarGallery() {
                 <img src={avatar.src} alt="avatar" className="avatar-image" />
               </button>
             ))}
-          <AddAvatar/>
+            <AddAvatar/>
           </div>
         </div>
     </div>
