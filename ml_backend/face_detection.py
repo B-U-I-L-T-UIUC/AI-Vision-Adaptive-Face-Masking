@@ -65,6 +65,12 @@ FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
 FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+model_path_face_detector = 2  ## Change this to the path of the face detector model
+
+FaceDetector = mp.tasks.vision.FaceDetector
+FaceDetectorOptions = mp.tasks.vision.FaceDetectorOptions
+VisionRunningMode = mp.tasks.vision.RunningMode
+
 
 def print_result(result: FaceLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     global landmark_results
@@ -119,6 +125,18 @@ if MQTT_TOPIC_ENABLED and mqtt_connection:
     mqtt_connection.disconnect().result()
     print("Disconnected from AWS IoT.")
 
+
+# Initialize face detection
+
+def initialize_face_detector(model_path: str):
+    options = FaceDetectorOptions(
+        base_options=BaseOptions(model_asset_path=model_path_face_detector),
+        running_mode=VisionRunningMode.IMAGE)  # Use IMAGE mode instead of LIVE_STREAM
+    return options
+
+# Dectect faces and return cropped image 
+def face_detection_and_cropping(static_img, options):
+    pass
 
 # Main function
 def main():
