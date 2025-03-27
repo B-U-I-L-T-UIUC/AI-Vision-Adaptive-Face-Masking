@@ -65,7 +65,8 @@ FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
 FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
-model_path_face_detector = 2  ## Change this to the path of the face detector model
+# Face detection
+model_path_face_detector = "ml_backend/models/face_detection.task"
 
 FaceDetector = mp.tasks.vision.FaceDetector
 FaceDetectorOptions = mp.tasks.vision.FaceDetectorOptions
@@ -127,16 +128,35 @@ if MQTT_TOPIC_ENABLED and mqtt_connection:
 
 
 # Initialize face detection
-
-def initialize_face_detector(model_path: str):
+def initialize_face_detector(model_path_face_detector: str):
     options = FaceDetectorOptions(
         base_options=BaseOptions(model_asset_path=model_path_face_detector),
-        running_mode=VisionRunningMode.IMAGE)  # Use IMAGE mode instead of LIVE_STREAM
+        running_mode=VisionRunningMode.IMAGE) 
     return options
 
-# Dectect faces and return cropped image 
+# Detect faces and return cropped images 
 def face_detection_and_cropping(static_img, options):
-    pass
+    if static_img is None or static_img.size == 0:
+        print("Invalid image provided")
+        return []
+    
+    with FaceDetector.create_from_options(options) as face_detector:
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data = static_img)
+        face_detector_result = face_detector.detect(mp_image)
+
+    cropped_faces = []  
+    if face_detector_result.detections:
+        print("No faces detected")
+        return cropped_faces
+    
+    for face in face_detector_result.detections:
+        bbox = face.bounding_box
+        x, y, w, h = bbox.origin_x, bbox.origin_y, bbox.width, bbox.height
+        cropped_face = static_img[y:y+h, x:x+w]
+        cropped_faces.append(cropped_face)
+
+    return cropped_faces
+        
 
 # Main function
 def main():
