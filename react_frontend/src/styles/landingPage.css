@@ -1,6 +1,7 @@
 
 
 body {
+  font-family: Inter, sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -24,9 +25,9 @@ body {
 }
 
 .built-logo {
-  width: 30%;
+  width: 20%;
   height: auto;
-  margin-right: 0px;
+  margin-right: 5%;
 }
 
 .titlenbutton {
@@ -38,12 +39,14 @@ body {
 }
 
 .title {
+  font-family: 'Lexend', sans-serif;
   font-size: 2.5em;
   color: #ffffff;
   margin: 0;
 }
 
 button {
+  font-family: 'Lexend', sans-serif;
   background-color: #9559E5;
   color: white;
   font-weight: 600;
@@ -61,15 +64,15 @@ button:hover {
 }
 
 footer {
-  position: absolute;
+  position: fixed;
+  bottom: 0;
+  right: 1%;
   font-weight: bold;
-  bottom: 0px;
-  right: 20px;
   color: rgb(255, 255, 255);
   font-size: 1.2em;
   text-align: right;
   background-color: transparent;
-  padding: 0;
+  padding: 10px;
 }
 
 a {
