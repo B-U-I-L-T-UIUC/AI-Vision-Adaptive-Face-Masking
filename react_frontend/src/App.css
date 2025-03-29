@@ -25,7 +25,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh; /* Ensure the gradient covers the entire height of the page */
-  font-family: 'Inter', sans-serif; /* If you want to set the font globally */
+  font-family: 'Lexend', sans-serif;  /* Use Lexend font */
 }
 
 .App-link {
@@ -39,3 +39,5 @@ body {
     transform: rotate(360deg);
   }
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap');

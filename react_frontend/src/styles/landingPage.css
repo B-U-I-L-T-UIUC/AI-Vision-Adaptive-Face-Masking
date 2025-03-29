@@ -1,0 +1,78 @@
+
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+  position: relative;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  width: 100%;
+  max-width: 1200px; 
+  margin: 0 auto;
+  padding: 0 20px; 
+}
+
+.built-logo {
+  width: 30%;
+  height: auto;
+  margin-right: 0px;
+}
+
+.titlenbutton {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.title {
+  font-size: 2.5em;
+  color: #ffffff;
+  margin: 0;
+}
+
+button {
+  background-color: #9559E5;
+  color: white;
+  font-weight: 600;
+  font-size: 1.4em;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 5%;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+footer {
+  position: absolute;
+  font-weight: bold;
+  bottom: 0px;
+  right: 20px;
+  color: rgb(255, 255, 255);
+  font-size: 1.2em;
+  text-align: right;
+  background-color: transparent;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
