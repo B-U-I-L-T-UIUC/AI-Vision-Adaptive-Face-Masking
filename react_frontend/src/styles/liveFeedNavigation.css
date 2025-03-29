@@ -1,5 +1,6 @@
-.buttons {
+.nav_buttons {
   display: inline-block;
+  margin: auto;
 }
 
 .gallery_button {
@@ -45,4 +46,44 @@ img {
 
 .left_img:hover {
   filter: brightness(0.5);
+}
+
+
+/* resize buttons */
+
+.plus_btn {
+  background-color: transparent;
+  border-color: transparent;
+  padding-bottom: 10px;
+  width: 60px;
+  height: 60px;
+}
+.minus_btn {
+  background-color: transparent;
+  border-color: transparent;
+  padding-top: 10px;
+  width: 60px;
+  height: 60px;
+}
+
+.plus_btn:hover {
+  filter: brightness(0.8);
+}
+
+.minus_btn:hover {
+  filter: brightness(0.8);
+}
+
+/* spacing out navigation buttons and resize buttons */
+.all_buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.resize_buttons {
+  display: grid;
+  align-items: center;
+  position: absolute;
+  right: 35px;
+  bottom: 15px;
 }
