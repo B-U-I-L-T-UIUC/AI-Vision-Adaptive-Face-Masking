@@ -20,11 +20,11 @@ def upload_image(body, path_params):
     if "userId" not in path_params:
         raise ValueError(f"missing path parameter")
     
-    if ("image_data" not in body):
+    if ("imageData" not in body):
         raise ValueError(f"missing image data")
     
-    image_data = body.get("image_data")  # Expecting a base64-encoded string
-    file_extension = body.get("file_extension", "jpg")  # Default to jpg
+    image_data = body.get("imageData")  # Expecting a base64-encoded string
+    file_extension = body.get("fileExtension", "jpg")  # Default to jpg
 
     image_bytes = base64.b64decode(image_data)
     file_name = f"{uuid.uuid4()}.{file_extension}"
