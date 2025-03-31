@@ -2,6 +2,7 @@ import json
 import cv2
 import time
 import threading
+import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -19,50 +20,17 @@ landmark_results = None
 # Default 
 color = (0, 255, 0)  # Default: Green
 
-# When True, model will receive request from AWS
+# When True, model will receive requests from AWS
 # Only enable when proper files are in your directory
 MQTT_TOPIC_ENABLED = False
 
 # AWS IoT Configuration
 ENDPOINT = "aevqdnds5bghe-ats.iot.us-east-1.amazonaws.com"
-CLIENT_ID = "eoh-test"
+CLIENT_ID = "eoh-processing-unit"
 TOPIC = "user-requests"
-CERTIFICATE_PATH = "urmom.pem.crt"
-PRIVATE_KEY_PATH = "urmom-private.pem.key"
-ROOT_CA_PATH = "AmazonRootCA1.pem"
-mqtt_connection = None
-
-if MQTT_TOPIC_ENABLED:
-    def on_message_received(topic, payload, **kwargs):
-        global color
-        print(f"Message received on topic {topic}: {payload}")
-        try:
-            event = json.loads(payload)
-            if "color" in event:
-                if event["color"] == "red":
-                    color = (0, 0, 255)
-                elif event["color"] == "blue":
-                    color = (255, 0, 0)
-                elif event["color"] == "green":
-                    color = (0, 255, 0)
-                print(f"Updated bounding box color: {color}")
-        except json.JSONDecodeError:
-            print("Error decoding JSON message")
-
-    print("Connecting to AWS IoT...")
-    mqtt_connection = mqtt_connection_builder.mtls_from_path(
-        endpoint=ENDPOINT,
-        cert_filepath=CERTIFICATE_PATH,
-        pri_key_filepath=PRIVATE_KEY_PATH,
-        ca_filepath=ROOT_CA_PATH,
-        client_id=CLIENT_ID,
-        clean_session=False,
-        keep_alive_secs=30
-    )
-    mqtt_connection.connect()
-    print("Connected!")
-    mqtt_connection.subscribe(topic=TOPIC, qos=mqtt.QoS.AT_LEAST_ONCE, callback=on_message_received)
-    print(f"Subscribed to {TOPIC}")
+CERTIFICATE_PATH = "./certificates/eoh-certificate.pem.crt"
+PRIVATE_KEY_PATH = "./certificates/eoh-private.pem.key"
+ROOT_CA_PATH = "./certificates/AmazonRootCA1.pem"
 
 model_path = "models/face_landmarker.task"
 
@@ -105,8 +73,8 @@ fig, ax = plt.subplots()
 
 def update_plot(frame):
     global blendShapeData, blendshape_history, frame_indiqces
-    columns = blendShapeData.columns.to_list()
-    print(columns)
+    # columns = blendShapeData.columns.to_list()
+    # print(columns)
 
     if blendShapeData.empty:
         return
@@ -140,9 +108,6 @@ def update_plot(frame):
     ax.legend(loc='upper right')
     plt.tight_layout()
 
-
-    
-
 def initialize_face_landmarker(model_path: str):
     options = FaceLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=model_path),
@@ -160,8 +125,44 @@ def initialize_camera():
         raise Exception("Error: Could not open camera.")
     return cap
 
+def initialize_mqtt_connection():
+    mqtt_connection = None
+    if MQTT_TOPIC_ENABLED:
+        print("Connecting to AWS IoT...")
+        mqtt_connection = mqtt_connection_builder.mtls_from_path(
+            endpoint=ENDPOINT,
+            cert_filepath=CERTIFICATE_PATH,
+            pri_key_filepath=PRIVATE_KEY_PATH,
+            ca_filepath=ROOT_CA_PATH,
+            client_id=CLIENT_ID,
+            clean_session=False,
+            keep_alive_secs=999
+        )
+        mqtt_connection.connect()
+        print("Connected!")
+        mqtt_connection.subscribe(topic=TOPIC, qos=mqtt.QoS.AT_LEAST_ONCE, callback=on_message_received)
+        print(f"Subscribed to {TOPIC}")
+
+    return mqtt_connection
+
+def on_message_received(topic, payload, **kwargs):
+            global color
+
+            try:
+                payload_str = payload.decode("utf-8")  # Decode byte payload to string
+                event = json.loads(payload_str)  # Parse JSON string
+                print(f"Message received on topic {topic}:")
+                print(json.dumps(event, indent=4))
+
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON: {e}")
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+
 # Start face landmark detection
 def run_face_landmark_detection(cap, options, color=(0, 255, 0)):
+    mqtt_connection = initialize_mqtt_connection()
+
     with FaceLandmarker.create_from_options(options) as landmarker:
         while cap.isOpened():
             ret, frame = cap.read()
@@ -199,12 +200,10 @@ def run_face_landmark_detection(cap, options, color=(0, 255, 0)):
     cap.release()
     cv2.destroyAllWindows()
 
-
-if MQTT_TOPIC_ENABLED and mqtt_connection:
-    print("Disconnecting...")
-    mqtt_connection.disconnect().result()
-    print("Disconnected from AWS IoT.")
-
+    if MQTT_TOPIC_ENABLED and mqtt_connection:
+        print("Disconnecting...")
+        mqtt_connection.disconnect().result()
+        print("Disconnected from AWS IoT.")
 
 # Main function
 def main():
@@ -220,3 +219,4 @@ def main():
 # Run main function
 if __name__ == "__main__":
     main()
+    
