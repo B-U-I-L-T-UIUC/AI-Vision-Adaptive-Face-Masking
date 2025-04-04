@@ -40,6 +40,13 @@ FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
 FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+# Face detection
+model_path_face_detector = "ml_backend/models/face_detection.task"
+
+FaceDetector = mp.tasks.vision.FaceDetector
+FaceDetectorOptions = mp.tasks.vision.FaceDetectorOptions
+VisionRunningMode = mp.tasks.vision.RunningMode
+
 
 blendshape_results = []  # Stores all frames' blendshapes
 transformation_matrices = []  # Stores transformation matrices
@@ -204,6 +211,41 @@ def run_face_landmark_detection(cap, options, color=(0, 255, 0)):
         print("Disconnecting...")
         mqtt_connection.disconnect().result()
         print("Disconnected from AWS IoT.")
+
+# Initialize face detection
+def initialize_face_detector(model_path_face_detector: str):
+    options = FaceDetectorOptions(
+        base_options=BaseOptions(model_asset_path=model_path_face_detector),
+        running_mode=VisionRunningMode.IMAGE) 
+    return options
+
+# Detect faces and return cropped images 
+def face_detection_and_cropping(static_img, options):
+    if static_img is None or static_img.size == 0:
+        print("Invalid image provided")
+        return []
+    
+    with FaceDetector.create_from_options(options) as face_detector:
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data = static_img)
+        face_detector_result = face_detector.detect(mp_image)
+
+    cropped_face = []  
+    if not face_detector_result.detections:
+        print("No faces detected")
+        return cropped_face
+    
+    if len(face_detector_result.detections) > 1:
+        print("Multiple faces detected! Upload a picture with one face only.")
+        return cropped_face
+    else:
+        face = face_detector_result.detections[0]
+        bbox = face.bounding_box
+        x, y, w, h = bbox.origin_x, bbox.origin_y, bbox.width, bbox.height
+        cropped_face = static_img[y:y+h, x:x+w]
+        cropped_face.append(cropped_face)
+
+    return cropped_face
+        
 
 # Main function
 def main():
