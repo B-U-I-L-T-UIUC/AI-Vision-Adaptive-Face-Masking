@@ -145,7 +145,7 @@ def face_detection_and_cropping(static_img, options):
         face_detector_result = face_detector.detect(mp_image)
 
     cropped_faces = []  
-    if face_detector_result.detections:
+    if not face_detector_result.detections:
         print("No faces detected")
         return cropped_faces
     
