@@ -38,7 +38,7 @@ export default function VideoContainer() {
         {errorMessage ? (
           <div className="video-placeholder">{errorMessage}</div>
         ) : (
-          <video ref={videoRef} autoPlay playsInline className="camera-feed"></video>
+          <img className="video-background" src="http://localhost:8000/video" alt="Video Feed" />
         )}
 
         <div className="live-feed-nav-wrapper">

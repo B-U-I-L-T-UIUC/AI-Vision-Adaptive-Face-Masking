@@ -30,7 +30,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/avatarGalleryModal.css";
-import AddAvatar from "../components/addAvatar";
 
 export default function AvatarGallery() {
   const navigate = useNavigate();
@@ -102,7 +101,6 @@ export default function AvatarGallery() {
           ) : (
             <p>Loading avatars...</p> // Optionally show a loading message
           )}
-          <AddAvatar/>
         </div>
       </div>
     </div>
