@@ -144,18 +144,22 @@ def face_detection_and_cropping(static_img, options):
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data = static_img)
         face_detector_result = face_detector.detect(mp_image)
 
-    cropped_faces = []  
+    cropped_face = []  
     if not face_detector_result.detections:
         print("No faces detected")
-        return cropped_faces
+        return cropped_face
     
-    for face in face_detector_result.detections:
+    if len(face_detector_result.detections) > 1:
+        print("Multiple faces detected! Upload a picture with one face only.")
+        return cropped_face
+    else:
+        face = face_detector_result.detections[0]
         bbox = face.bounding_box
         x, y, w, h = bbox.origin_x, bbox.origin_y, bbox.width, bbox.height
         cropped_face = static_img[y:y+h, x:x+w]
-        cropped_faces.append(cropped_face)
+        cropped_face.append(cropped_face)
 
-    return cropped_faces
+    return cropped_face
         
 
 # Main function
