@@ -1,67 +1,79 @@
-// FaceMask.jsx
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import mqtt from "mqtt";
 import "./FaceMask.css";
 
-export default function FaceMask() {
+const FaceMask = () => {
   const containerRef = useRef(null);
-  const videoRef = useRef(null);
-  const modelRef = useRef(null);
+  const raccoonRef = useRef(null);
+  const glassesRef = useRef(null);
+  const sceneRef = useRef(null);
   const [debugData, setDebugData] = useState({});
-  const [modelLoaded, setModelLoaded] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("raccoon");
 
   useEffect(() => {
-    let renderer, scene, camera;
+    let renderer;
+    let scene;
+    let camera;
     let socket;
-    let client;
-    let animationFrameId;
 
     const initThree = () => {
-      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(window.devicePixelRatio);
-      containerRef.current.appendChild(renderer.domElement);
+      // Initialize renderer only once
+      if (!renderer) {
+        renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        containerRef.current.appendChild(renderer.domElement);
+      }
 
-      scene = new THREE.Scene();
+      // Initialize scene only once
+      if (!scene) {
+        scene = new THREE.Scene();
+        sceneRef.current = scene;
+      }
 
-      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 10); 
-      camera.position.z = 1.5;
-      scene.add(camera);
+      // Initialize camera only once
+      if (!camera) {
+        camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.01, 100);
+        camera.position.z = 2;
+      }
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-      scene.add(ambientLight);
-
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-      directionalLight.position.set(0, 1, 2);
-      scene.add(directionalLight);
+      const light = new THREE.AmbientLight(0xffffff, 1.8);
+      scene.add(light);
     };
 
-    const loadModel = (modelUrl = "/models/raccoon_head.glb") => {
+    const loadModels = () => {
       const loader = new GLTFLoader();
+
       loader.load(
-        modelUrl,
+        "/models/raccoon_head.glb",
         (gltf) => {
-          if (modelRef.current) scene.remove(modelRef.current);
-          const model = gltf.scene;
-          model.scale.set(0.6, 0.6, 0.6);
-          model.position.set(0, 0, 0.8);
-          model.visible = true;
-          scene.add(model);
-          modelRef.current = model;
-          setModelLoaded(true);
-          console.log("✅ Model loaded:", modelUrl);
+          const raccoon = gltf.scene;
+          raccoon.scale.set(3, 3, 3);
+          raccoon.visible = false;
+          sceneRef.current.add(raccoon);
+          raccoonRef.current = raccoon;
         },
         undefined,
-        (error) => {
-          console.error("❌ Failed to load model:", error);
-        }
+        (error) => console.error("Raccoon model load error:", error)
+      );
+
+      loader.load(
+        "/models/glasses.glb",
+        (gltf) => {
+          const glasses = gltf.scene;
+          glasses.scale.set(6, 6, 6);
+          glasses.visible = false;
+          sceneRef.current.add(glasses);
+          glassesRef.current = glasses;
+        },
+        undefined,
+        (error) => console.error("Glasses model load error:", error)
       );
     };
 
-    const applyMatrixToModel = (matrixData) => {
-      if (!matrixData?.length || !modelRef.current) return;
+    const applyMatrixToModels = (matrixData) => {
+      if (!matrixData?.length) return;
 
       const flat = matrixData.flat();
       const threeMatrix = new THREE.Matrix4();
@@ -72,34 +84,25 @@ export default function FaceMask() {
       const scale = new THREE.Vector3();
       threeMatrix.decompose(position, quaternion, scale);
 
-      modelRef.current.position.copy(position);
-      modelRef.current.quaternion.copy(quaternion);
-      modelRef.current.scale.set(0.6, 0.6, 0.6);
-      modelRef.current.position.y += 0.1;
-      modelRef.current.position.z += 0.05;
+      if (raccoonRef.current) {
+        raccoonRef.current.position.copy(position);
+        raccoonRef.current.quaternion.copy(quaternion);
+        raccoonRef.current.scale.set(50, 50, 50);
+        raccoonRef.current.position.y += 0.05;
+        raccoonRef.current.position.z += 0.02;
+      }
+
+      if (glassesRef.current) {
+        glassesRef.current.position.copy(position);
+        glassesRef.current.quaternion.copy(quaternion);
+        glassesRef.current.scale.set(120, 120, 10);
+        glassesRef.current.position.y += 0.1;
+        glassesRef.current.position.z += 0.03;
+      }
     };
 
-    const applyBlendshapes = (blendshapes) => {
-      if (!modelRef.current || !blendshapes) return;
-
-      modelRef.current.traverse((obj) => {
-        if (obj.isMesh && obj.morphTargetDictionary && obj.morphTargetInfluences) {
-          for (const [name, value] of Object.entries(blendshapes)) {
-            const index = obj.morphTargetDictionary[name];
-            if (index !== undefined) {
-              obj.morphTargetInfluences[index] = value;
-            }
-          }
-        }
-      });
-    };
-
-    const connectWebSocket = () => {
+    const connectSocket = () => {
       socket = new WebSocket("ws://localhost:8000/ws");
-
-      socket.onopen = () => console.log("🟢 WebSocket connected");
-      socket.onerror = (e) => console.error("🔴 WebSocket error:", e);
-      socket.onclose = () => console.log("⚪️ WebSocket disconnected");
 
       socket.onmessage = (event) => {
         try {
@@ -107,75 +110,85 @@ export default function FaceMask() {
           setDebugData(data);
 
           const { matrix, blendshapes } = data;
-          applyMatrixToModel(matrix);
-          applyBlendshapes(blendshapes);
+          applyMatrixToModels(matrix);
+
+          [raccoonRef.current, glassesRef.current].forEach((model) => {
+            if (model) {
+              model.visible = model === getSelectedModel();
+              model.traverse((obj) => {
+                if (obj.isMesh && obj.morphTargetDictionary && obj.morphTargetInfluences) {
+                  for (const [name, value] of Object.entries(blendshapes || {})) {
+                    const index = obj.morphTargetDictionary[name];
+                    if (index !== undefined) {
+                      obj.morphTargetInfluences[index] = value;
+                    }
+                  }
+                }
+              });
+            }
+          });
         } catch (err) {
-          console.error("❌ WebSocket parse error:", err);
+          console.error("WebSocket parse error:", err);
         }
       };
+
+      socket.onopen = () => console.log("🟢 WS connected");
+      socket.onerror = (e) => console.error("🔴 WS error", e);
+      socket.onclose = () => console.log("⚪️ WS closed");
     };
 
-    const connectMQTT = () => {
-      client = mqtt.connect("ws://localhost:9001");
-
-      client.on("connect", () => {
-        console.log("📡 MQTT connected");
-        client.subscribe("model/select");
-      });
-
-      client.on("message", (topic, message) => {
-        if (topic === "model/select") {
-          const modelUrl = message.toString(); // Assume full GLB URL (e.g. from S3)
-          console.log("🔵 Loading new model:", modelUrl);
-          loadModel(modelUrl);
-        }
-      });
-
-      client.on("error", (err) => {
-        console.error("❌ MQTT error:", err);
-      });
+    const getSelectedModel = () => {
+      return selectedModel === "raccoon" ? raccoonRef.current : glassesRef.current;
     };
 
     const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-      if (renderer && scene && camera) {
-        renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+      if (sceneRef.current && camera) {
+        renderer.render(sceneRef.current, camera);
       }
     };
 
-    const onWindowResize = () => {
-      if (!camera || !renderer) return;
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+    const setup = () => {
+      initThree();
+      loadModels();
+      connectSocket();
+      animate();
     };
 
-    // --- Initialize ---
-    initThree();
-    loadModel(); // Load default raccoon_head.glb
-    connectWebSocket();
-    connectMQTT();
-    animate();
-    window.addEventListener("resize", onWindowResize);
-
+    setup();
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", onWindowResize);
       if (socket) socket.close();
-      if (client) client.end();
-      if (renderer) renderer.dispose();
     };
-  }, []);
+  }, [selectedModel]);
 
   return (
-    <div className="face-mask-container">
-      <video ref={videoRef} className="video-background" autoPlay muted playsInline src="http://localhost:8000/video" />
+    <>
+          {/* Video Feed */}
+          <img className="video-background" src="http://localhost:8000/video" alt="Video Feed" />
       <div ref={containerRef} className="canvas-container" />
+
+
+      {/* Controls */}
+      <div
+        className="dropzone"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          const model = e.dataTransfer.getData("model");
+          if (model) {
+            setSelectedModel(model);
+          }
+        }}
+      >
+        Drop here to change model
+      </div>
+
+      {/* Debug info */}
       <div className="debug-panel">
         <strong>🧠 Debug:</strong>
         <pre>{JSON.stringify(debugData, null, 2)}</pre>
-        <p>{modelLoaded ? "✅ Model Loaded" : "⌛ Loading Model..."}</p>
       </div>
-    </div>
+    </>
   );
-}
+};
+
+export default FaceMask;
