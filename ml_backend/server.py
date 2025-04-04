@@ -11,6 +11,8 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import uvicorn
+from starlette.websockets import WebSocketDisconnect
+from fastapi import WebSocketDisconnect
 
 app = FastAPI()
 
@@ -22,8 +24,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# MediaPipe FaceLandmarker setup
+# === Mediapipe Setup ===
 model_path = "models/face_landmarker.task"
+
 BaseOptions = mp.tasks.BaseOptions
 FaceLandmarker = mp.tasks.vision.FaceLandmarker
 FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
@@ -37,24 +40,42 @@ options = FaceLandmarkerOptions(
 )
 landmarker = FaceLandmarker.create_from_options(options)
 
-# Frame store
 latest_frame = None
 
-# MJPEG streaming
+def capture_loop():
+    global latest_frame
+    cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+        raise RuntimeError("❌ Could not open webcam!")
+
+    while True:
+        ret, frame = cap.read()
+        if ret:
+            latest_frame = cv2.flip(frame, 1)
+
+threading.Thread(target=capture_loop, daemon=True).start()
+
 def mjpeg_generator():
     global latest_frame
     while True:
         if latest_frame is not None:
             _, jpeg = cv2.imencode(".jpg", latest_frame)
+            frame_bytes = jpeg.tobytes()
+
             yield (
                 b"--frame\r\n"
-                b"Content-Type: image/jpeg\r\n\r\n" + jpeg.tobytes() + b"\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" +
+                frame_bytes +
+                b"\r\n"
             )
         time.sleep(0.03)
 
 @app.get("/video")
 async def video_feed():
     return StreamingResponse(mjpeg_generator(), media_type="multipart/x-mixed-replace; boundary=frame")
+
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -63,12 +84,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
     try:
         while True:
-            await asyncio.sleep(0.05)
-            if latest_frame is None:
-                continue  # Wait for a frame to be available
-
-            try:
-                # Process frame
+            if latest_frame is not None:
+                # If frame exists, send immediately
                 rgb = cv2.cvtColor(latest_frame, cv2.COLOR_BGR2RGB)
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
                 timestamp = int(time.time() * 1000)
@@ -97,30 +114,20 @@ async def websocket_endpoint(websocket: WebSocket):
                 }
 
                 await websocket.send_text(json.dumps(data))
+            
+            await asyncio.sleep(0.01)  # smaller sleep so we don't spam CPU
 
-            except Exception as e:
-                print(f"⚠️ Frame processing error: {e}")
+    except WebSocketDisconnect:
+        print("⚪️ Client disconnected. Waiting for next...")
 
     except Exception as e:
-        print(f"⚠️ WebSocket error: {e}")
+        print(f"⚠️ Unexpected error: {e}")
 
     finally:
-        await websocket.close()
-        print("⚪️ WebSocket disconnected")
-
-# Webcam capture loop
-def capture_loop():
-    global latest_frame
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        raise RuntimeError("❌ Could not open webcam")
-    while True:
-        ret, frame = cap.read()
-        if ret:
-            latest_frame = cv2.flip(frame, 1)
-
-# Start webcam thread
-threading.Thread(target=capture_loop, daemon=True).start()
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     print("✅ Backend running at http://localhost:8000")
