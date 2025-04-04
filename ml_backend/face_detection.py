@@ -12,7 +12,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from awscrt import mqtt
 from awsiot import mqtt_connection_builder
-
+from ml_backend import render_avatar_animation 
 
 # Create a face landmarker instance with the live stream mode:
 landmark_results = None
@@ -215,6 +215,8 @@ def main():
     plt.show()
 
     run_face_landmark_detection(cap, options, color=color)
+
+    render_avatar_animation(blendShapeData)
 
 # Run main function
 if __name__ == "__main__":

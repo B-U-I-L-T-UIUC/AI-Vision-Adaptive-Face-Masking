@@ -1,0 +1,27 @@
+import trimesh
+import imageio
+
+def render_avatar_animation(blendshape_df):
+    print("🛠 Rendering avatar animation based on tracked blendshapes...")
+
+    mesh = trimesh.load("rigged_teddy.glb")
+    frames = []
+
+    for i, row in blendshape_df.iterrows():
+        # Use 1 or more blendshapes to modify appearance (simulate for now)
+        smile_score = row.get("mouthSmileLeft", 0.0)
+        brow_score = row.get("browInnerUp", 0.0)
+
+        # Apply simple visual transformation (scale or rotate) for testing
+        mesh_copy = mesh.copy()
+        mesh_copy.apply_scale(1 + smile_score * 0.05)
+        mesh_copy.apply_translation([0.0, brow_score * 0.02, 0.0])
+
+        scene = mesh_copy.scene()
+        img_bytes = scene.save_image(resolution=(512, 512))
+        frame = imageio.v3.imread(img_bytes)
+        frames.append(frame)
+
+    out_path = "avatar_output.gif"
+    imageio.mimsave(out_path, frames, fps=10)
+    print(f"✅ Avatar animation saved to {out_path}")
