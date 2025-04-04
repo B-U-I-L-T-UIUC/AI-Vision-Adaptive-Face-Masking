@@ -23,7 +23,7 @@
 
 .exit-button {
     position: absolute;
-    top: 20px; 
+    top: 20px;
     right: 20px;
     background-color: transparent;
     border: none;
@@ -86,19 +86,3 @@
     filter: brightness(0.5);
 }
 
-.avatars {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    justify-items: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.avatar-image {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
-    display: block;
-    border-radius: 10px;
-}
