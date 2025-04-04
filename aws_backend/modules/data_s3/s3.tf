@@ -12,7 +12,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket_day_expiration" {
     }
     
     expiration {
-      days = 1  # Set to delete objects after 1 day
+      days = 10  # Set to delete objects after 10 day
     }
 
     status = "Enabled"
