@@ -86,7 +86,7 @@ export default function AvatarGallery() {
     <div className="avatar-gallery-container">
       <div className="avatar-grid-container">
         <div className="select-avatar-text">SELECT YOUR AVATAR</div>
-        <button className="exit-button" onClick={() => navigate("../live-feed")}>✖</button> 
+        <button className="exit-button" onClick={() => navigate("../")}>✖</button> 
         <div className="avatars">
           {avatars.length > 0 ? (
             avatars.map((avatar, index) => (
