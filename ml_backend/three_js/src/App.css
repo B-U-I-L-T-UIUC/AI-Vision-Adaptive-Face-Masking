@@ -1,0 +1,43 @@
+/* Ensure full viewport for the 3D canvas */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  /* The container for the 3D canvas */
+  #root {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    height: 100vh;
+  }
+  
+  /* The div where Three.js renders the mask model */
+  #canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* Hidden video element used as input for face detection */
+  video {
+    display: none; /* Hide the webcam video feed */
+  }
+  
+  /* Optional: Add styles for loading states or error messages */
+  .loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: white;
+  }
+  

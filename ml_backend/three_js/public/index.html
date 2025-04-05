@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediaPipe Face Landmarker</title>
+  <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    video, canvas {
+      display: block;
+      margin: 20px auto;
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Face Landmarker Demo</h1>
+  <div id="root"></div>
+  
+  <!-- Webcam Button -->
+  <button id="webcamButton" class="mdc-button mdc-button--raised">
+    <span class="mdc-button__ripple"></span>
+    <span class="mdc-button__label">Enable Webcam</span>
+  </button>
+
+  <!-- Video Feed -->
+  <video id="webcam" width="640" height="480" autoplay playsinline></video>
+
+  <!-- Canvas for Drawing Landmarks -->
+  <canvas id="output_canvas" style="position: absolute; top: 0; left: 0;"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3"></script>
+  <script src="script.js"></script>
+  
+</body>
+</html>

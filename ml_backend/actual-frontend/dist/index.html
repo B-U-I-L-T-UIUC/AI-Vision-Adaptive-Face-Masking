@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Facemask Landmarks</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      #canvas-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+      }
+      video#webcam {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: 0;
+        transform: scaleX(-1); /* Mirror the video */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+    <video id="webcam" autoplay muted playsinline></video>
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
