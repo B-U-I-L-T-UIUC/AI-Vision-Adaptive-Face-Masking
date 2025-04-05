@@ -30,7 +30,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/avatarGalleryModal.css";
-import AddAvatar from "../components/addAvatar";
 
 export default function AvatarGallery() {
   const navigate = useNavigate();
@@ -87,7 +86,7 @@ export default function AvatarGallery() {
     <div className="avatar-gallery-container">
       <div className="avatar-grid-container">
         <div className="select-avatar-text">SELECT YOUR AVATAR</div>
-        <button className="exit-button" onClick={() => navigate("../live-feed")}>✖</button> 
+        <button className="exit-button" onClick={() => navigate("../")}>✖</button> 
         <div className="avatars">
           {avatars.length > 0 ? (
             avatars.map((avatar, index) => (
@@ -102,7 +101,6 @@ export default function AvatarGallery() {
           ) : (
             <p>Loading avatars...</p> // Optionally show a loading message
           )}
-          <AddAvatar/>
         </div>
       </div>
     </div>

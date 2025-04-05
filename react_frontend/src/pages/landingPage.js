@@ -5,7 +5,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
   
   const handleStartClick = () => {
-    navigate('/live-feed'); 
+    navigate('/avatar-gallery'); 
   };
 
   return (
