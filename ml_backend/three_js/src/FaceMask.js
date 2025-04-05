@@ -23,7 +23,7 @@ const FaceMask = () => {
     // Initialize FaceLandmarker
     const initFaceLandmarker = async () => {
       const filesetResolver = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
       );
       faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
         baseOptions: {
@@ -64,6 +64,7 @@ const FaceMask = () => {
     // Load Models (raccoon and glasses)
     const loadModels = () => {
       const loader = new GLTFLoader();
+      
       loader.load("/models/raccoon_head.glb", (gltf) => {
         const raccoon = gltf.scene;
         raccoon.scale.set(0.15, 0.15, 0.15); // Adjust scale to fit on face
@@ -81,79 +82,20 @@ const FaceMask = () => {
       });
     };
 
-    // Apply FaceLandmarker results to the models
-    // const applyFaceLandmarkerResults = (results) => {
-    //   if (!results || !results.faceLandmarks || !results.faceLandmarks.length) return;
-
-    //   // const matrixData = results.facialTransformationMatrixes[0]?.data;
-    //   let matrixData;
-    //   let landmarks = [];
-    //   let blendshapes = [];
-    //   let matrix = [];
-    
-    //   if (results.faceLandmarks[0] && results.faceLandmarks.length[0] > 0) {
-    //     landmarks = results.faceLandmarks[0][0].map(lm => ({
-    //       x: lm.x,
-    //       y: lm.y,
-    //       z: lm.z,
-    //     }));
-    //   }
-    
-    //   if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
-    //     results.faceBlendshapes[0].forEach(bs => {
-    //       blendshapes.push(bs.score);
-    //     });
-    //   }
-    
-    //   // if (results.facialTransformationMatrixes && results.facialTransformationMatrixes.length > 0) {
-    //   //   const raw = new Float32Array(results.facialTransformationMatrixes[0].data);
-    //   //   matrix = Array.from(raw);
-    //   // }
-
-    //   matrixData = {
-    //     "landmarks" : landmarks,
-    //     "blendshapes": blendshapes,
-    //     "matrix": matrix,
-    //   }
-    //   console.log(matrixData)
-    //   if (matrixData) {
-    //     // const flat = matrixData.flat();
-    //     const threeMatrix = new THREE.Matrix4();
-    //     threeMatrix.set(matrixData);
-
-    //     const position = new THREE.Vector3();
-    //     const quaternion = new THREE.Quaternion();
-    //     const scale = new THREE.Vector3();
-    //     threeMatrix.decompose(position, quaternion, scale);
-
-    //     if (raccoonRef.current) {
-    //       raccoonRef.current.position.copy(position);
-    //       raccoonRef.current.quaternion.copy(quaternion);
-    //       raccoonRef.current.scale.set(0.15, 0.15, 0.15);
-    //       raccoonRef.current.visible = true;
-    //     }
-
-    //     if (glassesRef.current) {
-    //       glassesRef.current.position.copy(position);
-    //       glassesRef.current.quaternion.copy(quaternion);
-    //       glassesRef.current.scale.set(0.3, 0.3, 0.3);
-    //       glassesRef.current.visible = true;
-    //     }
-    //   }
-    // };
-
     const applyMatrixToModels = (matrixData) => {
       if (!matrixData || matrixData.length === 0) return;
     
       const threeMatrix = new THREE.Matrix4();
-      threeMatrix.set(...matrixData);
-    
+      threeMatrix.fromArray(matrixData);
       const position = new THREE.Vector3();
       const quaternion = new THREE.Quaternion();
       const scale = new THREE.Vector3();
       threeMatrix.decompose(position, quaternion, scale);
-      scale.set(1, 1, 1);
+      // position.multiplyScalar(0.20);
+      // scale.set(10,10,10);
     
+      console.log(position)
+      console.log(quaternion)
       // Fix: Scale down translation from mm to meters
       // position.multiplyScalar(0.20); // Adjust this factor if needed
     
@@ -161,26 +103,25 @@ const FaceMask = () => {
       position.y += 0.05;
       position.z += 0.02;
 
-      position.x *= -1;
-      quaternion.x *= -1;
-      quaternion.y *= -1;
-      quaternion.z *= -1;
+      // position.x *= -1;
+      // quaternion.x *= -1;
+      // quaternion.y *= -1;
+      // quaternion.z *= -1;
+      // position.multiplyScalar(1.5);
 
-      console.log(position)
-      console.log(quaternion)
     
       if (raccoonRef.current) {
         raccoonRef.current.position.copy(position);
         raccoonRef.current.quaternion.copy(quaternion);
-        raccoonRef.current.scale.set(1, 1, 1); // Match model scale
-        raccoonRef.current.visible = false;
+        raccoonRef.current.scale.set(60, 60, 60); // Match model scale
+        raccoonRef.current.visible = true;
       }
     
       if (glassesRef.current) {
         glassesRef.current.position.copy(position);
         glassesRef.current.quaternion.copy(quaternion);
         glassesRef.current.scale.set(0.3, 0.3, 0.3);
-        glassesRef.current.visible = false;
+        glassesRef.current.visible = true;
       }
     };
     
@@ -196,20 +137,15 @@ const FaceMask = () => {
     
       const blendshapes = {};
       for (const category of results.faceBlendshapes[0]?.categories || []) {
-        console.log("Blendshape category object:", category);
         if (category && category.categoryName && category.score !== undefined) {
           blendshapes[category.categoryName] = category.score;
-          console.log(`Blendshape: ${category.categoryName}, Score: ${category.score.toFixed(3)}`);
         }
       }
 
-      // console.log("blendshapes")
-      console.log(blendshapes)
-       let matrixData = results.facialTransformationMatrixes[0]?.data;
+      let matrixData = results.facialTransformationMatrixes[0]?.data;
+      console.log("Matrix frame:", JSON.stringify(matrixData));
       applyMatrixToModels(matrixData);
-    
-      // selected = getSelectedModel();
-      // selectedModel 
+
       [raccoonRef.current, glassesRef.current].forEach((model) => {
 
         if (model) {
@@ -217,7 +153,6 @@ const FaceMask = () => {
           model.traverse((obj) => {
             if (obj.isMesh && obj.morphTargetDictionary && obj.morphTargetInfluences) {
               for (const [name, value] of Object.entries(blendshapes)) {
-                console.log("CHECKING")
                 const index = obj.morphTargetDictionary[name];
                 if (index !== undefined) {
                   obj.morphTargetInfluences[index] = value;
@@ -235,14 +170,17 @@ const FaceMask = () => {
     // Track Face function using video input
     const trackFace = async () => {
       if (videoRef.current && faceLandmarker) {
-        const results = await faceLandmarker.detectForVideo(videoRef.current, performance.now());
-        console.log(results);
+        const results = await faceLandmarker.detectForVideo(
+          videoRef.current, 
+          performance.now());
+        // console.log(results);
         processResults(results);
       }
       requestAnimationFrame(trackFace);
     };
 
     const animate = () => {
+      // model.visible = model === getSelectedModel();
       requestAnimationFrame(animate);
       if (sceneRef.current && camera) {
         renderer.render(sceneRef.current, camera);
@@ -256,14 +194,28 @@ const FaceMask = () => {
 
     const setup = async () => {
       initThree();
-      await initFaceLandmarker();
+      initFaceLandmarker();
       loadModels();
       animate();
-
-      navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: "user" // "user" for front camera, "environment" for back
+        }
+      })
+      navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          facingMode: "user" // "user" for front camera, "environment" for back
+      } }).then((stream) => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.addEventListener("loadeddata", trackFace);
+          videoRef.current.onplaying = () => {
+            trackFace();
+            animate();
+          };
         }
       });
     };
