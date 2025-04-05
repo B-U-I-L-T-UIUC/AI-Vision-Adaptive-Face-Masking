@@ -63,3 +63,9 @@ typing_extensions==4.12.2
 tzdata==2025.2
 wcwidth==0.2.13
 zipp==3.21.0
+fastapi==0.110.0
+uvicorn==0.29.0
+mediapipe==0.10.21
+opencv-contrib-python==4.11.0.86
+numpy==1.26.4
+starlette==0.36.3
